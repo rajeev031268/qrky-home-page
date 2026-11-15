@@ -1,0 +1,154 @@
+<!doctype html>
+<!-- ABOUTME: QRKY home page reference UI. Banner carousel on top, two-column URL+QR builder below. -->
+<!-- ABOUTME: Calls https://api.app.qrky.ai/api/v1/qr/graphical to produce a photo-realistic QR. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QRKY — photo-realistic QR codes</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span class="brand-name">qrky<span class="brand-tld">.ai</span></span>
+  </div>
+  <nav class="site-nav">
+    <a href="#builder">Create</a>
+    <a href="https://app.qrky.ai/api/v1/docs/" target="_blank" rel="noopener">API docs</a>
+  </nav>
+</header>
+
+<section class="banner">
+  <div class="banner-inner">
+    <div class="banner-copy">
+      <h1>Turn any photo into a scannable QR.</h1>
+      <p>Paste a URL, pick an image, and we'll weave the two into a photo-realistic QR you can print, share, or ship.</p>
+      <a class="banner-cta" href="#builder">Build one now</a>
+    </div>
+    <div class="banner-carousel" aria-label="Sample photo-realistic QR codes">
+      <div class="track" id="carouselTrack"></div>
+    </div>
+  </div>
+</section>
+
+<section id="builder" class="builder">
+  <div class="builder-left">
+    <label class="field-label" for="urlInput">Enter or paste URL</label>
+    <div class="url-row">
+      <input
+        id="urlInput"
+        type="url"
+        class="url-input"
+        placeholder="https://yoururl.com"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="submit-btn" id="submitBtn" type="button">Submit</button>
+    </div>
+    <p class="helper">Your QR will open this URL.</p>
+
+    <label class="field-label thumbs-label">Select or Upload image for QR</label>
+    <div class="thumb-grid" id="thumbGrid">
+      <button class="thumb selected" data-src="image1.jpg" aria-label="Image 1">
+        <img src="image1.jpg" alt="Image 1" />
+      </button>
+      <button class="thumb" data-src="image2.jpg" aria-label="Image 2">
+        <img src="image2.jpg" alt="Image 2" />
+      </button>
+      <button class="thumb" data-src="image3.jpg" aria-label="Image 3">
+        <img src="image3.jpg" alt="Image 3" />
+      </button>
+      <div class="upload-slot" id="uploadSlot">
+        <button class="upload-empty" id="uploadEmpty" type="button">
+          <span class="upload-plus">+</span>
+          <span>Upload image</span>
+        </button>
+        <div class="upload-filled hidden" id="uploadFilled">
+          <button class="upload-select" id="uploadSelect" type="button" aria-label="Select uploaded image">
+            <img id="uploadImg" alt="Uploaded image" />
+          </button>
+          <button class="upload-replace" id="uploadReplace" type="button">Upload image</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="builder-right">
+    <div class="qr-header">
+      <div class="qr-mini-thumb" id="qrMiniThumb" aria-label="Selected image">
+        <img id="qrMiniThumbImg" src="image1.jpg" alt="" />
+      </div>
+      <p class="qr-caption" id="qrCaption">Scan to open: https://www.qrky.ai</p>
+    </div>
+    <div class="qr-stage" id="qrStage">
+      <img id="qrImage" class="qr-image" alt="Generated QR code" src="banner_qr1.png" />
+      <div class="qr-overlay hidden" id="qrOverlay">
+        <div class="qr-countdown" id="qrCountdown">15</div>
+        <div class="qr-overlay-label">Generating…</div>
+      </div>
+      <div class="qr-error hidden" id="qrError"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <small>Reference UI · powered by qrky.ai</small>
+</footer>
+
+<!-- Upload / crop modal -->
+<div class="modal hidden" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+
+    <!-- Step 1: upload + crop -->
+    <div id="step1">
+      <h2 id="uploadTitle">Upload image</h2>
+      <ol class="modal-steps">
+        <li>Upload image.</li>
+        <li>Image in frame will be used for QR.</li>
+        <li>Zoom, shift image to adjust frame.</li>
+      </ol>
+
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*" hidden />
+        <p id="dropText">Drag &amp; drop an image here, or click to choose a file.</p>
+      </div>
+
+      <div class="cropper hidden" id="cropper">
+        <div class="crop-viewport" id="cropViewport">
+          <img id="cropImg" alt="" draggable="false" />
+          <div class="crop-frame"></div>
+        </div>
+        <div class="crop-controls">
+          <label for="zoomSlider">Zoom</label>
+          <input id="zoomSlider" type="range" min="1" max="4" step="0.01" value="1" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" id="chooseAnother" type="button">Choose another</button>
+        <button class="btn-primary" id="nextBtn" type="button" disabled>Next</button>
+      </div>
+    </div>
+
+    <!-- Step 2: confirm -->
+    <div id="step2" class="hidden">
+      <h2>Confirm your crop</h2>
+      <p class="modal-sub">This 512&times;512 square will be embedded in your QR.</p>
+      <div class="confirm-preview">
+        <img id="confirmImg" alt="Cropped preview" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="editBtn" type="button">Edit</button>
+        <button class="btn-primary" id="confirmBtn" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
