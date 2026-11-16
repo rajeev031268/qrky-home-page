@@ -6,8 +6,14 @@ const QRKY_ENDPOINT = "https://api.app.qrky.ai/api/v1/qr/graphical";
 // Fallback host if the primary doesn't expose CORS:
 const QRKY_FALLBACK = "https://dev.qrplus.ai/api/v1/qr/graphical";
 
-const DEFAULT_IMAGES = ["image1.jpg", "image2.jpg", "image3.jpg"];
-const DEFAULT_QRS    = ["banner_qr1.png", "banner_qr2.png", "banner_qr3.png"];
+const DEFAULT_IMAGES = ["image4.jpg", "image2.jpg", "image3.jpg"];
+const DEFAULT_QRS    = ["banner_qr4.png", "banner_qr2.png", "banner_qr3.png"];
+const BANNER_PAIRS   = [
+  { img: "image1.jpg", qr: "banner_qr1.png" },
+  { img: "image2.jpg", qr: "banner_qr2.png" },
+  { img: "image3.jpg", qr: "banner_qr3.png" },
+  { img: "image4.jpg", qr: "banner_qr4.png" },
+];
 const DEFAULT_URL    = "https://www.qrky.ai";
 
 // ---------- State ----------
@@ -62,8 +68,7 @@ const carouselTrack = document.getElementById("carouselTrack");
 // Each slide is a photo + its photo-realistic QR (encoding https://www.qrky.ai).
 // The list is duplicated so the CSS translateX(-50%) loop seams cleanly.
 (function initCarousel() {
-  const pairs = DEFAULT_IMAGES.map((img, i) => ({ img, qr: DEFAULT_QRS[i] }));
-  const doubled = [...pairs, ...pairs];
+  const doubled = [...BANNER_PAIRS, ...BANNER_PAIRS];
   carouselTrack.innerHTML = doubled
     .map(
       (p) => `
@@ -122,6 +127,9 @@ function selectThumb(src, isCustom) {
   if (state.url) {
     regenerateQR();
   } else if (!isCustom) {
+    ++state.reqId;
+    stopGeneratingUI();
+    qrError.classList.add("hidden");
     const idx = DEFAULT_IMAGES.indexOf(src);
     if (idx >= 0) {
       qrImage.src = DEFAULT_QRS[idx];
